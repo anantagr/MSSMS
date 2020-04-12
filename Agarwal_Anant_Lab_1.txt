@@ -1,0 +1,76 @@
+Question 1. 
+For each invoice that has PaymentDate (not null), calculate and display how many days before the due date the invoice was paid. 
+More specifically, display invoiceID, invoice number, invoice date, invoice due date, payment date, and calculated column that 
+is the number of days from payment date to due date (this column should have positive values where invoice was paid before due date, 
+and negative if it was paid after due date).
+Display all date values without time component. Make sure all columns have meaningful headers.
+
+Answer 1.
+
+select InvoiceID, InvoiceNumber, 
+	convert (date, InvoiceDate) as InvoiceDate,
+	convert (date, InvoiceDueDate) as InvoiceDueDate,
+	convert (date, PaymentDate) as PaymentDate,
+	datediff(day, PaymentDate, InvoiceDueDate) as NumberOfDaysBeforeDueDate
+from Invoices
+where PaymentDate IS NOT NULL
+
+
+
+
+Question 2.
+Using InvoiceLineItems, display invoice ids together with how many lines each invoice has. Include only invoices that have more 
+than one line. Make sure all columns have meaningful headers.
+
+Answer 2.
+
+select InvoiceID,
+	count(InvoiceSequence) as NumberOfLinesInInvoice
+from InvoiceLineItems
+Group By InvoiceID
+Having count(InvoiceSequence) > 1
+
+
+
+
+Question 3.
+Add InvoiceNumber and VendorName to the previous query (you will need to join two more tables).
+
+Answer 3.
+
+Select InvoiceLineItems.InvoiceID, InvoiceNumber, Vendors.VendorName,
+	count(InvoiceSequence) as NumberOfLinesInInvoice
+From ((Invoices 
+	join InvoiceLineItems on InvoiceLineItems.InvoiceID = Invoices.InvoiceID)
+	join Vendors on Vendors.VendorID = Invoices.VendorID)
+Group By InvoiceLineItems.InvoiceID, Invoices.InvoiceNumber, Vendors.VendorName
+Having count(InvoiceSequence) > 1
+
+
+
+
+Question 4.
+Display account numbers and descriptions of all accounts from GLAccounts table that are NOT referenced by any invoice line item.
+
+Answer 4.
+
+Select GLAccounts.AccountNo, AccountDescription 
+From GLAccounts
+	Left join InvoiceLineItems on GLAccounts.AccountNo = InvoiceLineItems.AccountNo
+where InvoiceLineItems.AccountNo is null
+
+
+
+
+Question 5.
+or each vendor who has invoices display vendor ID, vendor name and the date of the most recent invoice of that vendor. 
+Display all date values without time component. Make sure all columns have meaningful headers.
+
+Answer 5.
+
+Select Vendors.VendorID, VendorName, 
+convert (date, MAX(Invoices.InvoiceDate)) as "Most Recent InvoiceDate"
+From Vendors
+	Inner join Invoices on Vendors.VendorID = Invoices.VendorID
+Group by Vendors.VendorID, VendorName
+
